@@ -14,25 +14,25 @@ extern void yyerror(Process *process, char *msg);
 %union {
     int integer;
     Arg arg;
-    Instruction *instruction;
+    Instr *instr;
 }
 
 %token TOK_DAT TOK_MOV TOK_ADD TOK_SUB TOK_JMP TOK_JMZ TOK_DJZ TOK_CMP TOK_IMMEDIATE TOK_INDIRECT NEWLINE
 %token <integer> TOK_NUMBER
 
-%type <instruction> instructions
-%type <instruction> instruction
+%type <instr> instrs
+%type <instr> instr
 %type <integer> code dat mov add sub jmp jmz djz cmp
 %type <arg> argument
 %type <integer> mode
 
 %%
 
-instructions: /* empty */  { }
-            | instructions instruction { process_add_instruction(process, $2); }
+instrs: /* empty */  { }
+            | instrs instr { process_add_instr(process, $2); }
             ;
 
-instruction: code argument argument { $$ = instruction_create($1, $2, $3); };
+instr: code argument argument { $$ = instr_create($1, $2, $3); };
 
 code: dat
     | mov

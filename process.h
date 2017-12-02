@@ -9,8 +9,8 @@ typedef struct Process Process;
 struct Process {
     Process *prev;
     Process *next;
-    Instruction *first_instruction;
-    Instruction *last_instruction;
+    Instr *first_instr;
+    Instr *last_instr;
     uint pc;
 };
 
@@ -20,8 +20,8 @@ void process_destroy(Process *process);
 
 void process_print(Process *process);
 
-void process_add_instruction(Process *process, Instruction *instruction);
+void process_add_instr(Process *process, Instr *instr);
 
-Instruction *process_instruction(Process *process, uint n);
+Instr *process_instr(Process *process, uint n);
 
 #endif /* PROCESS_H */

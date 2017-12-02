@@ -8,8 +8,8 @@ Process *process_create() {
 
     process->prev = process;
     process->next = process;
-    process->first_instruction = 0;
-    process->last_instruction = 0;
+    process->first_instr = 0;
+    process->last_instr = 0;
 
     return process;
 }
@@ -19,25 +19,25 @@ void process_destroy(Process *process) {
 }
 
 void process_print(Process *process) {
-    Instruction *instruction;
-    for (instruction = process->first_instruction; instruction; instruction = instruction->next) {
-        instruction_print(instruction);
+    Instr *instr;
+    for (instr = process->first_instr; instr; instr = instr->next) {
+        instr_print(instr);
     }
 }
 
-void process_add_instruction(Process *process, Instruction *instruction) {
-    Instruction *last = process->last_instruction;
+void process_add_instr(Process *process, Instr *instr) {
+    Instr *last = process->last_instr;
 
     if (last) {
-        instruction_sequence(last, instruction);
-        process->last_instruction = instruction;
+        instr_sequence(last, instr);
+        process->last_instr = instr;
     } else {
-        process->first_instruction = instruction;
-        process->last_instruction = instruction;
+        process->first_instr = instr;
+        process->last_instr = instr;
     }
 }
 
-Instruction *process_instruction(Process *process, uint n) {
-    Instruction *instruction = process->first_instruction;
-    return instruction_succ(instruction, n);
+Instr *process_instr(Process *process, uint n) {
+    Instr *instr = process->first_instr;
+    return instr_succ(instr, n);
 }

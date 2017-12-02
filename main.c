@@ -1,8 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#include "arena.h"
 #include "player.h"
-#include "process.h"
 
 #include <stdio.h>
 #include <stdlib.h>

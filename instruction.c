@@ -1,30 +1,30 @@
 #include "instruction.h"
 #include "player.h"
 
-#define PICK_BITS(value, from, to) ((value >> from) & ~(~0 << (to-from+1)))
+#define PICK_BITS(value, from, to) (((value) >> (from)) & ~(~0 << ((to)-(from)+1)))
 
 #include <stdlib.h>
 #include <stdio.h>
 
-Arg arg_create(int mode, int val) {
+Arg arg_create(Mode mode, int val) {
     Arg arg = { mode, val };
     return arg;
 }
 
-Instruction *instruction_create(int code, Arg a, Arg b) {
-    Instruction *instruction = malloc(sizeof(Instruction));
+Instr *instr_create(int code, Arg a, Arg b) {
+    Instr *instr = malloc(sizeof(Instr));
 
-    instruction->prev = 0;
-    instruction->next = 0;
-    instruction->code = code;
-    instruction->a = a;
-    instruction->b = b;
+    instr->prev = 0;
+    instr->next = 0;
+    instr->code = code;
+    instr->a = a;
+    instr->b = b;
 
-    return instruction;
+    return instr;
 }
 
-void instruction_destroy(Instruction *instruction) {
-    free(instruction);
+void instr_destroy(Instr *instr) {
+    free(instr);
 }
 
 /* Instruction parser functions. */
@@ -37,12 +37,12 @@ int parse_val_1(uint instr) {
     return PICK_BITS(instr, 12, 23);
 }
 
-int parse_mode_2(uint instr) {
-    return PICK_BITS(instr, 24, 25);
+Mode parse_mode_2(uint instr) {
+    return (Mode) PICK_BITS(instr, 24, 25);
 }
 
-int parse_mode_1(uint instr) {
-    return PICK_BITS(instr, 26, 27);
+Mode parse_mode_1(uint instr) {
+    return (Mode) PICK_BITS(instr, 26, 27);
 }
 
 int parse_code(uint instr) {
@@ -63,71 +63,65 @@ Arg parse_arg_2(uint instr) {
     return arg_2;
 }
 
-Instruction instruction_parse(uint instr) {
-    Instruction instruction;
-    instruction.prev = 0;
-    instruction.next = 0;
+Instr instr_parse(uint encoded) {
+    Instr instr;
+    instr.prev = 0;
+    instr.next = 0;
 
-    instruction.code = parse_code(instr);
-    instruction.a = parse_arg_1(instr);
-    instruction.b = parse_arg_2(instr);
-    return instruction;
+    instr.code = parse_code(encoded);
+    instr.a = parse_arg_1(encoded);
+    instr.b = parse_arg_2(encoded);
+    return instr;
 }
 
-Instruction *instruction_pred(Instruction *instruction, int n) {
-    if (n == 0) {
-        return instruction;
-    } else if (n < 0) {
-        return instruction_succ(instruction, -n);
+Instr *instr_pred(Instr *instr, int index) {
+    if (index < 0) {
+        return instr_succ(instr, -index);
     }
-
-    while (n-- > 0 && instruction) {
-        instruction = instruction->prev;
+    while (index-- > 0 && instr) {
+        instr = instr->prev;
     }
-    return instruction;
+    return instr;
 }
 
-Instruction *instruction_succ(Instruction *instruction, int n) {
-    if (n == 0) {
-        return instruction;
-    } else if (n < 0) {
-        return instruction_pred(instruction, -n);
+Instr *instr_succ(Instr *instr, int index) {
+    if (index < 0) {
+        return instr_pred(instr, -index);
     }
-
-    while (n-- > 0 && instruction) {
-        instruction = instruction->next;
+    while (index-- > 0 && instr) {
+        instr = instr->next;
     }
-    return instruction;
+    return instr;
 }
 
-Instruction *instruction_first(Instruction *instruction) {
-    while (instruction->prev) {
-        instruction = instruction->prev;
+Instr *instr_first(Instr *instr) {
+    while (instr->prev) {
+        instr = instr->prev;
     }
-    return instruction;
+    return instr;
 }
 
-Instruction *instruction_last(Instruction *instruction) {
-    while (instruction->next) {
-        instruction = instruction->next;
+Instr *instr_last(Instr *instr) {
+    while (instr->next) {
+        instr = instr->next;
     }
-    return instruction;
+    return instr;
 }
 
-void instruction_sequence(Instruction *prev, Instruction *next) {
+void instr_sequence(Instr *prev, Instr *next) {
     prev->next = next;
     next->prev = prev;
 }
 
-uint instruction_instr(Instruction *instruction) {
-    Arg *a = &instruction->a;
-    Arg *b = &instruction->b;
+int instr_encode(Instr *instr) {
+    Arg *a = &instr->a;
+    Arg *b = &instr->b;
 
-    uint code = instruction->code;
-    uint mode1 = a->mode;
-    uint mode2 = b->mode;
-    uint val1 = a->val;
-    uint val2 = b->val;
+    int code = instr->code;
+    int mode1 = a->mode;
+    int mode2 = b->mode;
+    int val1 = a->val;
+    int val2 = b->val;
 
     return (code << 28)
          | (mode1 << 26)
@@ -174,7 +168,7 @@ void (*handlers[])(Arg *, Arg *, Player *) = {
     dat, mov, add, sub, jmp, jmz, djz, cmp
 };
 
-char *instruction_code_name(int code) {
+char *instr_code_name(int code) {
     char *code_names[] = {
         "dat", "mov", "add", "sub", "jmp", "jmz", "djz", "cmp"
     };
@@ -186,7 +180,7 @@ char *instruction_code_name(int code) {
     }
 }
 
-char *instruction_mode_name(int mode) {
+char *instr_mode_name(int mode) {
     char *mode_names[] = {
         "#", "", "@"
     };
@@ -201,19 +195,20 @@ char *instruction_mode_name(int mode) {
 char *validate(char *code_name, char *mode_1_name, char *mode_2_name) {
     if (!code_name) {
         return "code name";
-    } else if (!mode_1_name) {
-        return "mode 1";
-    } else if (!mode_2_name) {
-        return "mode 2";
-    } else {
-        return 0;
     }
+    if (!mode_1_name) {
+        return "mode 1";
+    }
+    if (!mode_2_name) {
+        return "mode 2";
+    }
+    return 0;
 }
 
-void instruction_print(Instruction *instruction) {
-    int code = instruction->code;
-    Arg *a = &instruction->a;
-    Arg *b = &instruction->b;
+void instr_print(Instr *instr) {
+    int code = instr->code;
+    Arg *a = &instr->a;
+    Arg *b = &instr->b;
 
     int mode_1 = a->mode;
     int mode_2 = b->mode;
@@ -221,9 +216,9 @@ void instruction_print(Instruction *instruction) {
     int val_1 = a->val;
     int val_2 = b->val;
 
-    char *code_name = instruction_code_name(code);
-    char *mode_1_name = instruction_mode_name(mode_1);
-    char *mode_2_name = instruction_mode_name(mode_2);
+    char *code_name = instr_code_name(code);
+    char *mode_1_name = instr_mode_name(mode_1);
+    char *mode_2_name = instr_mode_name(mode_2);
 
     char *error_field = validate(code_name, mode_1_name, mode_2_name);
 
@@ -234,13 +229,13 @@ void instruction_print(Instruction *instruction) {
     }
 }
 
-/*void instruction_execute(uint instr, Player *player) {
-    Instruction instruction = instruction_parse(instr);
-    int code = instruction.code;
-    Arg *a = &instruction.a;
-    Arg *b = &instruction.b;
+/*void instr_execute(uint instr, Player *player) {
+    instr instr = instr_parse(instr);
+    int code = instr.code;
+    arg *a = &instr.a;
+    arg *b = &instr.b;
     handlers[code](a, b, player);
 
-    printf("Executed instruction: ");
-    instruction_print(&instruction);
+    printf("Executed instr: ");
+    instr_print(&instr);
 }*/

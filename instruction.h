@@ -3,67 +3,54 @@
 
 #include "types.h"
 
-typedef enum Code Code;
-typedef enum Mode Mode;
-typedef struct Arg Arg;
-typedef struct Instruction Instruction;
+typedef enum {
+    DAT, MOV, ADD, SUB, JMP, JMZ, DJZ, CMP
+} Code;
 
-enum Code {
-    DAT,
-    MOV,
-    ADD,
-    SUB,
-    JMP,
-    JMZ,
-    DJZ,
-    CMP
-};
+typedef enum {
+    IMD, REL, IND
+} Mode;
 
-enum Mode {
-    IMD,
-    REL,
-    IND
-};
-
-struct Arg {
-    int mode;
+typedef struct {
+    Mode mode;
     int val;
-};
+} Arg;
 
-struct Instruction {
-    Instruction *prev;
-    Instruction *next;
+typedef struct instr Instr;
+struct instr {
+    Instr *prev;
+    Instr *next;
     int code;
     Arg a;
     Arg b;
 };
 
-Arg arg_create(int mode, int val);
+Arg arg_create(Mode mode, int val);
 
-Instruction *instruction_create(int code, Arg a, Arg b);
+Instr *instr_create(int code, Arg a, Arg b);
 
-void instruction_destroy(Instruction *instruction);
+void instr_destroy(Instr *instr);
 
-char *instruction_code_name(int code);
+char *instr_code_name(int code);
 
-char *instruction_mode_name(int mode);
+char *instr_mode_name(int mode);
 
-Instruction instruction_parse(uint instr);
+Instr instr_parse(uint encoded);
 
-Instruction *instruction_pred(Instruction *instruction, int n);
+Instr *instr_pred(Instr *instr, int index);
 
-Instruction *instruction_succ(Instruction *instruction, int n);
+Instr *instr_succ(Instr *instr, int index);
 
-Instruction *instruction_first(Instruction *instruction);
+Instr *instr_first(Instr *instr);
 
-Instruction *instruction_last(Instruction *instruction);
+Instr *instr_last(Instr *instr);
 
-void instruction_sequence(Instruction *prev, Instruction *next);
+void instr_sequence(Instr *prev, Instr *next);
 
-uint instruction_instr(Instruction *instruction);
+int instr_encode(Instr *instr);
 
-void instruction_print(Instruction *instruction);
+void instr_print(Instr *instr);
 
-//void instruction_execute(uint instr, Player *player);
+/*void instr_execute(uint instr, Player *player);*/
 
 #endif /* INSTRUCTION_H */

@@ -43,7 +43,7 @@ void player_add_process(Player *player) {
 int player_move(Player *player) {
     Process *process = player->current_process;
     uint pc = process->pc;
-    uint instr = arena_get(pc);
+    int instr = arena_get(pc);
 
 
     // TODO ...
