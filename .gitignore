@@ -1,0 +1,23 @@
+# Hidden files and backup files
+.*
+!.gitignore
+*~
+
+# Object files
+*.o
+
+# Lexer/parser generated files
+*.yy.*
+*.tab.*
+
+# CMake
+CMake*
+!CMakeLists.txt
+*.cmake
+Makefile
+
+# QT Creator
+framewars.*
+
+# Binary
+framewars
