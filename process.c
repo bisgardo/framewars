@@ -3,41 +3,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-Process *process_create() {
-    Process *process = malloc(sizeof(Process));
+Proc *proc_create() {
+    Proc *proc = malloc(sizeof(Proc));
 
-    process->prev = process;
-    process->next = process;
-    process->first_instr = 0;
-    process->last_instr = 0;
+    proc->prev = proc;
+    proc->next = proc;
+    proc->first_instr = 0;
+    proc->last_instr = 0;
 
-    return process;
+    return proc;
 }
 
-void process_destroy(Process *process) {
-    free(process);
+void proc_destroy(Proc *proc) {
+    free(proc);
 }
 
-void process_print(Process *process) {
+void proc_print(Proc *proc) {
     Instr *instr;
-    for (instr = process->first_instr; instr; instr = instr->next) {
+    for (instr = proc->first_instr; instr; instr = instr->next) {
         instr_print(instr);
     }
 }
 
-void process_add_instr(Process *process, Instr *instr) {
-    Instr *last = process->last_instr;
+void proc_add_instr(Proc *proc, Instr *instr) {
+    Instr *last = proc->last_instr;
 
     if (last) {
         instr_sequence(last, instr);
-        process->last_instr = instr;
+        proc->last_instr = instr;
     } else {
-        process->first_instr = instr;
-        process->last_instr = instr;
+        proc->first_instr = instr;
+        proc->last_instr = instr;
     }
 }
 
-Instr *process_instr(Process *process, uint n) {
-    Instr *instr = process->first_instr;
+Instr *proc_instr(Proc *proc, uint n) {
+    Instr *instr = proc->first_instr;
     return instr_succ(instr, n);
 }

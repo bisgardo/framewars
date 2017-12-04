@@ -1,15 +1,16 @@
 %{
-#include <stdio.h>
-#include <string.h>
 
 #include "process.h"
 
+#include <stdio.h>
+#include <string.h>
+
 extern int yylex();
-extern void yyerror(Process *process, char *msg);
+extern void yyerror(Proc *proc, char *msg);
 
 %}
 
-%parse-param { Process *process }
+%parse-param { Proc *proc }
 
 %union {
     int integer;
@@ -23,16 +24,16 @@ extern void yyerror(Process *process, char *msg);
 %type <instr> instrs
 %type <instr> instr
 %type <integer> code dat mov add sub jmp jmz djz cmp
-%type <arg> argument
+%type <arg> arg
 %type <integer> mode
 
 %%
 
-instrs: /* empty */  { }
-            | instrs instr { process_add_instr(process, $2); }
-            ;
+instrs: /* empty */          {}
+      | instrs instr         { proc_add_instr(proc, $2); }
+      ;
 
-instr: code argument argument { $$ = instr_create($1, $2, $3); };
+instr: code arg arg          { $$ = instr_create($1, $2, $3); };
 
 code: dat
     | mov
@@ -44,19 +45,19 @@ code: dat
     | cmp
     ;
 
-argument: TOK_NUMBER      { $$ = arg_create(REL, $1); }
-        | mode TOK_NUMBER { $$ = arg_create($1, $2); }
-        ;
+arg: TOK_NUMBER              { $$ = arg_create(REL, $1); }
+   | mode TOK_NUMBER         { $$ = arg_create($1, $2); }
+   ;
 
-mode: TOK_IMMEDIATE { $$ = IMD; }
-    | TOK_INDIRECT  { $$ = IND; }
+mode: TOK_IMMEDIATE          { $$ = IMD; }
+    | TOK_INDIRECT           { $$ = IND; }
     ;
 
-dat: TOK_DAT { $$ = DAT; };
-mov: TOK_MOV { $$ = MOV; };
-add: TOK_ADD { $$ = ADD; };
-sub: TOK_SUB { $$ = SUB; };
-jmp: TOK_JMP { $$ = JMP; };
-jmz: TOK_JMZ { $$ = JMZ; };
-djz: TOK_DJZ { $$ = DJZ; };
-cmp: TOK_CMP { $$ = CMP; };
+dat: TOK_DAT                 { $$ = DAT; };
+mov: TOK_MOV                 { $$ = MOV; };
+add: TOK_ADD                 { $$ = ADD; };
+sub: TOK_SUB                 { $$ = SUB; };
+jmp: TOK_JMP                 { $$ = JMP; };
+jmz: TOK_JMZ                 { $$ = JMZ; };
+djz: TOK_DJZ                 { $$ = DJZ; };
+cmp: TOK_CMP                 { $$ = CMP; };

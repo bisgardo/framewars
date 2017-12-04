@@ -4,24 +4,23 @@
 #include "instruction.h"
 #include "types.h"
 
-typedef struct Process Process;
-
-struct Process {
-    Process *prev;
-    Process *next;
+typedef struct proc Proc;
+struct proc {
+    Proc *prev;
+    Proc *next;
     Instr *first_instr;
     Instr *last_instr;
     uint pc;
 };
 
-Process *process_create();
+Proc *proc_create();
 
-void process_destroy(Process *process);
+void proc_destroy(Proc *proc);
 
-void process_print(Process *process);
+void proc_print(Proc *proc);
 
-void process_add_instr(Process *process, Instr *instr);
+void proc_add_instr(Proc *proc, Instr *instr);
 
-Instr *process_instr(Process *process, uint n);
+Instr *proc_instr(Proc *proc, uint n);
 
 #endif /* PROCESS_H */

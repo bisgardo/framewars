@@ -1,48 +1,48 @@
 #include "player.h"
 
-#include "stdlib.h"
+#include <stdlib.h>
 
 Player *player_create(char *name) {
     Player *player = malloc(sizeof(Player));
-    Process *process = process_create();
+    Proc *proc = proc_create();
 
     player->name = name;
-    player->current_process = process;
+    player->cur_proc = proc;
 
     return player;
 }
 
 void player_destroy(Player *player) {
-    Process *process = player->current_process;
-    process->prev->next = 0;
+    Proc *proc = player->cur_proc;
+    proc->prev->next = 0;
 
-    while (process) {
-        Process *next = process->next;
-        process_destroy(process);
-        process = next;
+    while (proc) {
+        Proc *next = proc->next;
+        proc_destroy(proc);
+        proc = next;
     }
 
     free(player);
 }
 
-void player_add_process(Player *player) {
-    Process *process = process_create();
+void player_add_proc(Player *player) {
+    Proc *proc = proc_create();
 
-    Process *current = player->current_process;
-    Process *prev = current->prev;
+    Proc *current = player->cur_proc;
+    Proc *prev = current->prev;
 
-    prev->next = process;
-    process->prev = prev;
+    prev->next = proc;
+    proc->prev = prev;
 
-    current->prev = process;
-    process->next = current;
+    current->prev = proc;
+    proc->next = current;
 
-    player->current_process = process;
+    player->cur_proc = proc;
 }
 
 int player_move(Player *player) {
-    Process *process = player->current_process;
-    uint pc = process->pc;
+    Proc *proc = player->cur_proc;
+    uint pc = proc->pc;
     int instr = arena_get(pc);
 
 

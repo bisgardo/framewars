@@ -6,24 +6,24 @@
 #include <stdlib.h>
 
 extern FILE *yyin;
-extern int yyparse(Process *process);
+extern int yyparse(Proc *proc);
 
-void yyerror(Process *process, char *msg) {
-    fprintf(stderr, "Parse error...");
+void yyerror(Proc *proc, char *msg) {
+    fprintf(stderr, "Parse error: %s\n", msg);
 }
 
 int yywrap() {
     return 1;
 }
 
-int redcode_parse(Process *process, char *filename) {
+int redcode_parse(Proc *proc, char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
         return 0;
     }
 
     yyin = file;
-    yyparse(process);
+    yyparse(proc);
     return 1;
 }
 
@@ -42,20 +42,20 @@ int main(int argc, char *argv[]) {
     int max_rounds = 2*rounds_count;
     int round;
 
-    if (!redcode_parse(player1->current_process, dummy)) {
-        printf("Error parsing initial process of player 1: File %s not found\n", dummy);
+    if (!redcode_parse(player1->cur_proc, dummy)) {
+        fprintf(stderr, "Error parsing initial proc of player 1: File %s not found\n", dummy);
         return 1;
     }
-    if (!redcode_parse(player2->current_process, dwarf)) {
-        printf("Error parsing initial process of player 2: File %s not found\n", dwarf);
+    if (!redcode_parse(player2->cur_proc, dwarf)) {
+        fprintf(stderr, "Error parsing initial proc of player 2: File %s not found\n", dwarf);
         return 2;
     }
 
     {
         printf("Player 1:\n");
-        process_print(player1->current_process);
+        proc_print(player1->cur_proc);
         printf("Player 2:\n");
-        process_print(player2->current_process);
+        proc_print(player2->cur_proc);
     }
 
     /* TODO Initialize arena (could set size at the same time...) */

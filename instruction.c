@@ -1,10 +1,10 @@
 #include "instruction.h"
 #include "player.h"
 
-#define PICK_BITS(value, from, to) (((value) >> (from)) & ~(~0 << ((to)-(from)+1)))
-
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#define PICK_BITS(value, from, to) (((value) >> (from)) & ~(~0 << ((to)-(from)+1)))
 
 Arg arg_create(Mode mode, int val) {
     Arg arg = { mode, val };
