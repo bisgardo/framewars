@@ -2,29 +2,36 @@
 
 #include "player.h"
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 extern FILE *yyin;
 extern int yyparse(Proc *proc);
 
-void yyerror(Proc *proc, char *msg) {
-    fprintf(stderr, "Parse error: %s\n", msg);
-}
+extern int yylineno;
+extern char *yytext;
+
+int err_count;
 
 int yywrap() {
     return 1;
 }
 
-int redcode_parse(Proc *proc, char *filename) {
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        return 0;
-    }
+void yyerror(char *s, ...) {
+    err_count++;
+    va_list ap;
+    va_start(ap, s);
+    fprintf(stderr, "error on line %d: ", yylineno);
+    vfprintf(stderr, s, ap);
+    fprintf(stderr, "\n");
+}
 
+int redcode_parse(Proc *proc, FILE *file) {
     yyin = file;
-    yyparse(proc);
-    return 1;
+    yylineno = 1;
+    err_count = 0;
+    return !yyparse(proc) && !err_count;
 }
 
 int main(int argc, char *argv[]) {
@@ -42,12 +49,24 @@ int main(int argc, char *argv[]) {
     int max_rounds = 2*rounds_count;
     int round;
 
-    if (!redcode_parse(player1->cur_proc, dummy)) {
-        fprintf(stderr, "Error parsing initial proc of player 1: File %s not found\n", dummy);
+    FILE *dummyFile = fopen(dummy, "r");
+    if (!dummyFile) {
+        fprintf(stderr, "Error reading initial proc of player 1: File %s not found\n", dummy);
         return 1;
     }
-    if (!redcode_parse(player2->cur_proc, dwarf)) {
-        fprintf(stderr, "Error parsing initial proc of player 2: File %s not found\n", dwarf);
+
+    FILE *dwarfFile = fopen(dwarf, "r");
+    if (!dwarfFile) {
+        fprintf(stderr, "Error reading initial proc of player 2: File %s not found\n", dwarf);
+        return 1;
+    }
+
+    if (!redcode_parse(player1->cur_proc, dummyFile)) {
+        fprintf(stderr, "Error parsing initial procedure of player 1");
+        return 2;
+    }
+    if (!redcode_parse(player2->cur_proc, dwarfFile)) {
+        fprintf(stderr, "Error parsing initial procedure of player 2");
         return 2;
     }
 
